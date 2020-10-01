@@ -1,0 +1,45 @@
+@import "~@angular/material/theming";
+
+:host {
+  height: 100%;
+  display: grid;
+  gap: 1em;
+  grid-template-rows: auto 1fr auto;
+}
+
+::ng-deep {
+  svg {
+    height: 100%;
+    width: auto;
+    margin: auto;
+  }
+
+  g {
+    fill: mat-color($mat-orange, 400);
+    stroke: mat-color($mat-orange, 900);
+  }
+
+  g:first-child {
+    fill: mat-color($mat-blue, 600);
+    stroke: mat-color($mat-blue, 900);
+  }
+
+  g:nth-child(6) {
+    fill: mat-color($mat-green, 600);
+    stroke: mat-color($mat-green, 900);
+  }
+
+  svg>rect {
+    fill: mat-color($mat-red, 600);
+    stroke: mat-color($mat-red, 900);
+  }
+
+  rect {
+    stroke-width: 2;
+  }
+
+  circle {
+    fill: mat-color($mat-red, 600);
+    stroke: mat-color($mat-red, 900);
+  }
+}
