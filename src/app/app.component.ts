@@ -1,5 +1,6 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { faVolumeMute, faVolumeUp } from '@fortawesome/free-solid-svg-icons';
 import { vec2 } from 'gl-matrix';
 import { GameOverComponent } from './dialogs/game-over.component';
 import { WelcomeComponent } from './dialogs/welcome.component';
@@ -35,9 +36,18 @@ export class AppComponent {
 
   speed: vec2;
   temp: vec2;
-  origin = vec2.create();
+  origin: vec2;
 
   clock: number;
+
+  faVolumeUp = faVolumeUp;
+  faVolumeMute = faVolumeMute;
+  get muted() {
+    return localStorage.getItem('muted') === 'true';
+  }
+  set muted(v) {
+    localStorage.setItem('muted', `${v}`);
+  }
 
   constructor(private matDialog: MatDialog) {
     this.rows = 6;
@@ -57,6 +67,7 @@ export class AppComponent {
 
     this.speed = vec2.create();
     this.temp = vec2.create();
+    this.origin = vec2.create();
 
     this.clock = new Date().getTime();
 
@@ -114,13 +125,13 @@ export class AppComponent {
     if (this.tiles.length === 0) {
       this.matDialog.open(YouWinComponent, { disableClose: true })
         .afterClosed()
-        .subscribe(() => this.start());
+        .subscribe(v => v ? this.start() : null);
       return;
     } else if (this.dangerZone()) {
       if (this.looseBall()) {
         this.matDialog.open(GameOverComponent, { disableClose: true })
           .afterClosed()
-          .subscribe(() => this.start());
+          .subscribe(v => v ? this.start() : null);
         return;
       } else if (this.speed[1] > 0) {
         vec2.rotate(this.speed, this.speed, this.origin, Math.PI / 2);

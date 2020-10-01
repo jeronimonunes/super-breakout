@@ -7,13 +7,13 @@
   grid-template-rows: auto 1fr auto;
 }
 
-::ng-deep {
-  svg {
-    height: 100%;
-    width: 100%;
-    margin: auto;
-  }
+svg {
+  height: 100%;
+  width: 100%;
+  margin: auto;
+}
 
+svg::ng-deep {
   g {
     fill: mat-color($mat-orange, 400);
     stroke: mat-color($mat-orange, 900);
@@ -27,11 +27,6 @@
   g:nth-child(6) {
     fill: mat-color($mat-green, 600);
     stroke: mat-color($mat-green, 900);
-  }
-
-  svg > rect {
-    fill: mat-color($mat-red, 600);
-    stroke: mat-color($mat-red, 900);
   }
 
   rect {
