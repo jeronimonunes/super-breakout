@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostBinding, HostListener, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { faVolumeMute, faVolumeUp } from '@fortawesome/free-solid-svg-icons';
 import { vec2 } from 'gl-matrix';
@@ -44,6 +44,7 @@ export class AppComponent {
   origin: vec2;
 
   clock: number;
+  paused: boolean;
 
   get muted() {
     return localStorage.getItem('muted') === 'true';
@@ -74,7 +75,9 @@ export class AppComponent {
     this.origin = vec2.create();
 
     this.clock = new Date().getTime();
+    this.paused = false;
 
+    this.matDialog.closeAll();
     this.matDialog.open(WelcomeComponent, { disableClose: true })
       .afterClosed()
       .subscribe(() => this.start());
@@ -122,21 +125,23 @@ export class AppComponent {
 
     vec2.set(this.speed, 100, 100);
     this.clock = new Date().getTime();
+    this.paused = false;
     this.gameLoop();
   }
 
   gameLoop() {
+    if (this.paused) {
+      return;
+    }
     if (this.tiles.length === 0) {
+      this.matDialog.closeAll();
       this.matDialog.open(YouWinComponent, { disableClose: true })
         .afterClosed()
         .subscribe(v => v ? this.start() : null);
       return;
     } else if (this.dangerZone()) {
       if (this.looseBall()) {
-        this.over.nativeElement.play();
-        this.matDialog.open(GameOverComponent, { disableClose: true })
-          .afterClosed()
-          .subscribe(v => v ? this.start() : null);
+        this.gameOver();
         return;
       } else if (this.speed[1] > 0) {
         this.rotate();
@@ -169,8 +174,8 @@ export class AppComponent {
   }
 
   looseBall(): boolean {
-    const catchStart = this.player.x.baseVal.value - 2;
-    const catchEnd = this.player.width.baseVal.value + catchStart + 4;
+    const catchStart = this.player.x.baseVal.value - this.radius / 2;
+    const catchEnd = this.player.width.baseVal.value + catchStart + this.radius;
     return !between(this.ball.cx.baseVal.value, catchStart, catchEnd);
   }
 
@@ -208,6 +213,31 @@ export class AppComponent {
       x = this.width - this.pwidth - 1;
     }
     this.player.setAttribute('x', `${x}`);
+  }
+
+  @HostListener('document:keydown.r') reset() {
+    this.matDialog.closeAll();
+    this.start();
+  }
+
+  @HostListener('document:keydown.q') gameOver() {
+    this.paused = true;
+    this.over.nativeElement.play();
+    this.matDialog.closeAll();
+    this.matDialog.open(GameOverComponent, { disableClose: true })
+      .afterClosed()
+      .subscribe(v => v ? this.start() : null);
+  }
+
+  @HostListener('document:contextmenu', ['$event']) togglePaused(ev: MouseEvent) {
+    ev.preventDefault();
+    if (this.paused) {
+      this.paused = false;
+      this.clock = new Date().getTime();
+      this.gameLoop();
+    } else {
+      this.paused = true;
+    }
   }
 
 }
