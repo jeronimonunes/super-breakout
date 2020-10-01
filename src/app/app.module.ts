@@ -8,6 +8,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { AppComponent } from './app.component';
 import { GameOverComponent } from './dialogs/game-over.component';
 import { WelcomeComponent } from './dialogs/welcome.component';
+import { YouWinComponent } from './dialogs/you-win.component';
 
 
 
@@ -15,7 +16,8 @@ import { WelcomeComponent } from './dialogs/welcome.component';
   declarations: [
     AppComponent,
     WelcomeComponent,
-    GameOverComponent
+    GameOverComponent,
+    YouWinComponent
   ],
   imports: [
     BrowserModule,

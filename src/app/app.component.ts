@@ -3,6 +3,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { vec2 } from 'gl-matrix';
 import { GameOverComponent } from './dialogs/game-over.component';
 import { WelcomeComponent } from './dialogs/welcome.component';
+import { YouWinComponent } from './dialogs/you-win.component';
 
 function between(v: number, start: number, end: number) {
   return start <= v && end >= v;
@@ -35,19 +36,8 @@ export class AppComponent {
   speed: vec2;
   temp: vec2;
   origin = vec2.create();
-  _ballPosition: vec2;
 
   clock: number;
-
-  set ballPosition([x, y]) {
-    vec2.set(this._ballPosition, x, y);
-    this.ball.setAttribute('cx', '' + x);
-    this.ball.setAttribute('cy', '' + y);
-  }
-
-  get ballPosition() {
-    return this._ballPosition;
-  }
 
   constructor(private matDialog: MatDialog) {
     this.rows = 6;
@@ -67,7 +57,6 @@ export class AppComponent {
 
     this.speed = vec2.create();
     this.temp = vec2.create();
-    this._ballPosition = vec2.create();
 
     this.clock = new Date().getTime();
 
@@ -101,7 +90,8 @@ export class AppComponent {
     }
 
     svg.appendChild(this.ball);
-    this.ballPosition = [this.width / 2, this.height - this.margin - this.pheight - this.radius];
+    this.ball.setAttribute('cx', `${this.width / 2}`);
+    this.ball.setAttribute('cy', `${this.height - this.margin - this.pheight - this.radius}`);
     this.ball.setAttribute('r', `${this.radius}`);
 
     svg.appendChild(this.player);
@@ -121,11 +111,12 @@ export class AppComponent {
   }
 
   gameLoop() {
-    const now = new Date().getTime();
-    const elapsedTime = now - this.clock;
-    this.clock = now;
-
-    if (this.dangerZone()) {
+    if (this.tiles.length === 0) {
+      this.matDialog.open(YouWinComponent, { disableClose: true })
+        .afterClosed()
+        .subscribe(() => this.start());
+      return;
+    } else if (this.dangerZone()) {
       if (this.looseBall()) {
         this.matDialog.open(GameOverComponent, { disableClose: true })
           .afterClosed()
@@ -140,24 +131,31 @@ export class AppComponent {
       vec2.rotate(this.speed, this.speed, this.origin, Math.PI / 2);
     }
 
+    const now = new Date().getTime();
+    const elapsedTime = now - this.clock;
+    this.clock = now;
+
     const delta = vec2.scale(this.temp, this.speed, elapsedTime / 1000);
-    this.ballPosition = vec2.add(this.temp, delta, this.ballPosition);
+    const [bx, by] = vec2.add(this.temp, delta, [this.ball.cx.baseVal.value, this.ball.cy.baseVal.value]);
+    this.ball.setAttribute('cx', `${bx}`);
+    this.ball.setAttribute('cy', `${by}`);
 
     requestAnimationFrame(this.gameLoop.bind(this));
   }
 
   dangerZone() {
-    return (this.ballPosition[1] + this.radius) > this.player.y.baseVal.value;
+    return (this.ball.cy.baseVal.value + this.radius) > this.player.y.baseVal.value;
   }
 
   looseBall(): boolean {
     const catchStart = this.player.x.baseVal.value - 2;
     const catchEnd = this.player.width.baseVal.value + catchStart + 4;
-    return !between(this.ballPosition[0], catchStart, catchEnd);
+    return !between(this.ball.cx.baseVal.value, catchStart, catchEnd);
   }
 
   intersectTile() {
-    const [bx, by] = this.ballPosition;
+    const bx = this.ball.cx.baseVal.value;
+    const by = this.ball.cy.baseVal.value;
     for (let i = 0; i < this.tiles.length; i++) {
       const tile = this.tiles[i];
       const x1 = tile.x.baseVal.value;
@@ -174,7 +172,8 @@ export class AppComponent {
   }
 
   isOutOfScreen(): boolean {
-    const [bx, by] = this.ballPosition;
+    const bx = this.ball.cx.baseVal.value;
+    const by = this.ball.cy.baseVal.value;
     return (bx + this.radius) > this.width || (bx - this.radius) < 0 || (by + this.radius) > this.height || (by - this.radius) < 0;
   }
 
