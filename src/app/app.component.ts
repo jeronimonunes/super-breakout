@@ -1,5 +1,9 @@
+import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { vec2 } from 'gl-matrix';
+import { GameOverComponent } from './game-over/game-over.component';
+import { WelcomeComponent } from './welcome/welcome.component';
 
 function between(v: number, start: number, end: number) {
   return start <= v && end >= v;
@@ -10,7 +14,7 @@ function between(v: number, start: number, end: number) {
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
 
   rows: number;
   columns: number;
@@ -46,7 +50,7 @@ export class AppComponent implements OnInit {
     return this._ballPosition;
   }
 
-  constructor() {
+  constructor(private matDialog: MatDialog) {
     this.rows = 6;
     this.columns = 10;
     this.margin = 5;
@@ -67,12 +71,19 @@ export class AppComponent implements OnInit {
     this._ballPosition = vec2.create();
 
     this.clock = new Date().getTime();
+
+    this.matDialog.open(WelcomeComponent, { disableClose: true })
+      .afterClosed()
+      .subscribe(() => this.start());
   }
 
-  ngOnInit(): void {
+  start(): void {
     // creating elements
     const svg = this.svg.nativeElement;
     svg.setAttribute('viewBox', `0 0 ${this.width} ${this.height}`);
+    while (svg.lastChild) {
+      svg.removeChild(svg.lastChild);
+    }
     for (let r = 0; r < this.rows; r++) {
 
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -106,6 +117,7 @@ export class AppComponent implements OnInit {
     border.setAttribute('d', `M1 1 L${this.width - 1} 1 L${this.width - 1} ${this.height - 1} L1 ${this.height - 1} Z`);
 
     vec2.set(this.speed, 100, 100);
+    this.clock = new Date().getTime();
     this.gameLoop();
   }
 
@@ -116,7 +128,9 @@ export class AppComponent implements OnInit {
 
     if (this.dangerZone()) {
       if (this.looseBall()) {
-        console.log(`gameover`);
+        this.matDialog.open(GameOverComponent, { disableClose: true })
+          .afterClosed()
+          .subscribe(() => this.start());
         return;
       } else if (this.speed[1] > 0) {
         vec2.rotate(this.speed, this.speed, this.origin, Math.PI / 2);
@@ -138,8 +152,8 @@ export class AppComponent implements OnInit {
   }
 
   looseBall(): boolean {
-    const catchStart = this.player.x.baseVal.value - 1;
-    const catchEnd = this.player.width.baseVal.value + catchStart + 2;
+    const catchStart = this.player.x.baseVal.value - 2;
+    const catchEnd = this.player.width.baseVal.value + catchStart + 4;
     return !between(this.ballPosition[0], catchStart, catchEnd);
   }
 
