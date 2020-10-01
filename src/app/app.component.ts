@@ -33,7 +33,6 @@ export class AppComponent implements OnInit {
   temp: vec2;
   origin = vec2.create();
   _ballPosition: vec2;
-  _playerPosition: vec2;
 
   clock: number;
 
@@ -45,16 +44,6 @@ export class AppComponent implements OnInit {
 
   get ballPosition() {
     return this._ballPosition;
-  }
-
-  set playerPosition([x, y]) {
-    vec2.set(this._playerPosition, x, y);
-    this.player.setAttribute('x', '' + x);
-    this.player.setAttribute('y', '' + y);
-  }
-
-  get playerPosition() {
-    return this._playerPosition;
   }
 
   constructor() {
@@ -76,7 +65,6 @@ export class AppComponent implements OnInit {
     this.speed = vec2.create();
     this.temp = vec2.create();
     this._ballPosition = vec2.create();
-    this._playerPosition = vec2.create();
 
     this.clock = new Date().getTime();
   }
@@ -107,9 +95,15 @@ export class AppComponent implements OnInit {
     this.ball.setAttribute('r', `${this.radius}`);
 
     svg.appendChild(this.player);
-    this.playerPosition = [(this.width - this.pwidth) / 2, (this.height - this.pheight / 2 - this.margin * 2)];
+    this.player.setAttribute('x', `${(this.width - this.pwidth) / 2}`);
+    this.player.setAttribute('y', `${(this.height - this.pheight / 2 - this.margin * 2)}`);
     this.player.setAttribute('width', `${this.pwidth}`);
     this.player.setAttribute('height', `${this.pheight}`);
+
+    const border = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    svg.appendChild(border);
+
+    border.setAttribute('d', `M1 1 L${this.width - 1} 1 L${this.width - 1} ${this.height - 1} L1 ${this.height - 1} Z`);
 
     vec2.set(this.speed, 100, 100);
     this.gameLoop();
@@ -140,7 +134,7 @@ export class AppComponent implements OnInit {
   }
 
   dangerZone() {
-    return this.ballPosition[1] > this.playerPosition[1];
+    return this.ballPosition[1] > this.player.y.baseVal.value;
   }
 
   looseBall(): boolean {
@@ -172,10 +166,15 @@ export class AppComponent implements OnInit {
   }
 
   mousemove(ev: MouseEvent): void {
-    const svg = this.svg.nativeElement;
-    const nx = ev.offsetX / svg.getBoundingClientRect().width;
-    const x = nx * this.width;
-    this.playerPosition = [x - this.pwidth / 2, this.playerPosition[1]];
+    const svgPlayerX = this.player.x.baseVal.value;
+    const realPlayerX = this.player.getBoundingClientRect().x;
+    let x = ev.offsetX * svgPlayerX / (realPlayerX + this.pwidth);
+    if (x < 1) {
+      x = 1;
+    } else if (x >= this.width - this.pwidth) {
+      x = this.width - this.pwidth;
+    }
+    this.player.setAttribute('x', `${x}`);
   }
 
 }
