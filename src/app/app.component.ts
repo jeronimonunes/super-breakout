@@ -142,9 +142,9 @@ export class AppComponent {
     } else if (this.dangerZone()) {
       if (this.looseBall()) {
         this.gameOver();
-        return;
       } else if (this.speed[1] > 0) {
-        this.rotate();
+        this.speed[1] *= -1;
+        this.hit.nativeElement.play();
       }
     } else if (this.isOutOfScreen()) {
       this.rotate();
@@ -237,6 +237,17 @@ export class AppComponent {
       this.gameLoop();
     } else {
       this.paused = true;
+    }
+  }
+
+  // Handles user changing browser tabs
+  @HostListener('document:visibilitychange') visibilitychange() {
+    if (document.hidden) {
+      this.paused = true;
+    } else {
+      this.paused = false;
+      this.clock = new Date().getTime();
+      this.gameLoop();
     }
   }
 
