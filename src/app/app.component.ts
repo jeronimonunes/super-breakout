@@ -96,7 +96,7 @@ export class AppComponent implements OnInit {
 
     svg.appendChild(this.player);
     this.player.setAttribute('x', `${(this.width - this.pwidth) / 2}`);
-    this.player.setAttribute('y', `${(this.height - this.pheight / 2 - this.margin * 2)}`);
+    this.player.setAttribute('y', `${(this.height - this.pheight / 2 - this.margin)}`);
     this.player.setAttribute('width', `${this.pwidth}`);
     this.player.setAttribute('height', `${this.pheight}`);
 
@@ -118,7 +118,7 @@ export class AppComponent implements OnInit {
       if (this.looseBall()) {
         console.log(`gameover`);
         return;
-      } else {
+      } else if (this.speed[1] > 0) {
         vec2.rotate(this.speed, this.speed, this.origin, Math.PI / 2);
       }
     } else if (this.isOutOfScreen()) {
@@ -134,12 +134,12 @@ export class AppComponent implements OnInit {
   }
 
   dangerZone() {
-    return this.ballPosition[1] > this.player.y.baseVal.value;
+    return (this.ballPosition[1] + this.radius) > this.player.y.baseVal.value;
   }
 
   looseBall(): boolean {
-    const catchStart = this.player.x.baseVal.value;
-    const catchEnd = this.player.width.baseVal.value + catchStart;
+    const catchStart = this.player.x.baseVal.value - 1;
+    const catchEnd = this.player.width.baseVal.value + catchStart + 2;
     return !between(this.ballPosition[0], catchStart, catchEnd);
   }
 
@@ -162,7 +162,7 @@ export class AppComponent implements OnInit {
 
   isOutOfScreen(): boolean {
     const [bx, by] = this.ballPosition;
-    return bx > this.width || bx < 0 || by > this.height || by < 0;
+    return (bx + this.radius) > this.width || (bx - this.radius) < 0 || (by + this.radius) > this.height || (by - this.radius) < 0;
   }
 
   mousemove(ev: MouseEvent): void {
@@ -172,7 +172,7 @@ export class AppComponent implements OnInit {
     if (x < 1) {
       x = 1;
     } else if (x >= this.width - this.pwidth) {
-      x = this.width - this.pwidth;
+      x = this.width - this.pwidth - 1;
     }
     this.player.setAttribute('x', `${x}`);
   }
