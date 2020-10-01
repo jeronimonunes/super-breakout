@@ -1,9 +1,8 @@
-import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { vec2 } from 'gl-matrix';
-import { GameOverComponent } from './game-over/game-over.component';
-import { WelcomeComponent } from './welcome/welcome.component';
+import { GameOverComponent } from './dialogs/game-over.component';
+import { WelcomeComponent } from './dialogs/welcome.component';
 
 function between(v: number, start: number, end: number) {
   return start <= v && end >= v;
