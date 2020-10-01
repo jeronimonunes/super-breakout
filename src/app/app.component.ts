@@ -17,6 +17,13 @@ function between(v: number, start: number, end: number) {
 })
 export class AppComponent {
 
+  faVolumeUp = faVolumeUp;
+  faVolumeMute = faVolumeMute;
+
+  @ViewChild('svg', { static: true }) svg!: ElementRef<SVGElement>;
+  @ViewChild('hit', { static: true }) hit!: ElementRef<HTMLAudioElement>;
+  @ViewChild('over', { static: true }) over!: ElementRef<HTMLAudioElement>;
+
   rows: number;
   columns: number;
   margin: number;
@@ -28,8 +35,6 @@ export class AppComponent {
   height: number;
   radius: number;
 
-  @ViewChild('svg', { static: true })
-  svg!: ElementRef<SVGElement>;
   player: SVGRectElement;
   ball: SVGCircleElement;
   tiles: SVGRectElement[];
@@ -40,11 +45,10 @@ export class AppComponent {
 
   clock: number;
 
-  faVolumeUp = faVolumeUp;
-  faVolumeMute = faVolumeMute;
   get muted() {
     return localStorage.getItem('muted') === 'true';
   }
+
   set muted(v) {
     localStorage.setItem('muted', `${v}`);
   }
@@ -129,17 +133,18 @@ export class AppComponent {
       return;
     } else if (this.dangerZone()) {
       if (this.looseBall()) {
+        this.over.nativeElement.play();
         this.matDialog.open(GameOverComponent, { disableClose: true })
           .afterClosed()
           .subscribe(v => v ? this.start() : null);
         return;
       } else if (this.speed[1] > 0) {
-        vec2.rotate(this.speed, this.speed, this.origin, Math.PI / 2);
+        this.rotate();
       }
     } else if (this.isOutOfScreen()) {
-      vec2.rotate(this.speed, this.speed, this.origin, Math.PI / 2);
+      this.rotate();
     } else if (this.intersectTile()) {
-      vec2.rotate(this.speed, this.speed, this.origin, Math.PI / 2);
+      this.rotate();
     }
 
     const now = new Date().getTime();
@@ -152,6 +157,11 @@ export class AppComponent {
     this.ball.setAttribute('cy', `${by}`);
 
     requestAnimationFrame(this.gameLoop.bind(this));
+  }
+
+  rotate() {
+    vec2.rotate(this.speed, this.speed, this.origin, Math.PI / 2);
+    this.hit.nativeElement.play();
   }
 
   dangerZone() {
