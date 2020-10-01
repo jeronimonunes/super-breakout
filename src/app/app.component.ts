@@ -140,7 +140,7 @@ export class AppComponent {
         .subscribe(v => v ? this.start() : null);
       return;
     } else if (this.dangerZone()) {
-      if (this.looseBall()) {
+      if (this.loseBall()) {
         this.gameOver();
       } else if (this.speed[1] > 0) {
         this.speed[1] *= -1;
@@ -173,7 +173,7 @@ export class AppComponent {
     return (this.ball.cy.baseVal.value + this.radius) > this.player.y.baseVal.value;
   }
 
-  looseBall(): boolean {
+  loseBall(): boolean {
     const catchStart = this.player.x.baseVal.value - this.radius / 2;
     const catchEnd = this.player.width.baseVal.value + catchStart + this.radius;
     return !between(this.ball.cx.baseVal.value, catchStart, catchEnd);
